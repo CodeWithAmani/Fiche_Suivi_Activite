@@ -372,43 +372,50 @@ renderDashboard();
 
 // ── GOOGLE API LOADING ────────────────────────────────────────────
 function gapiLoaded() {
+  if (typeof gapi === 'undefined') { setTimeout(gapiLoaded, 500); return; }
   gapi.load('client', async () => {
-    await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
-    gapiReady = true;
-    maybeEnableAuth();
+    try {
+      await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+      gapiReady = true;
+      maybeEnableAuth();
+    } catch(e) { console.error('GAPI init:', e); setTimeout(gapiLoaded, 1000); }
   });
 }
 
 function gisLoaded() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: async (resp) => {
-      hideLoading();
-      if (resp.error) { toast('❌ Erreur de connexion : ' + resp.error, true); return; }
-      isSignedIn = true;
-      updateAuthUI(true);
-      await loadFromGDrive();
-    }
-  });
-  gisReady = true;
-  maybeEnableAuth();
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+    setTimeout(gisLoaded, 500); return;
+  }
+  try {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: async (resp) => {
+        hideLoading();
+        if (resp.error) { toast('Erreur de connexion : ' + resp.error, true); return; }
+        isSignedIn = true;
+        updateAuthUI(true);
+        await loadFromGDrive();
+      }
+    });
+    gisReady = true;
+    maybeEnableAuth();
+  } catch(e) { console.error('GIS init:', e); setTimeout(gisLoaded, 1000); }
 }
 
 function maybeEnableAuth() {
+  const btn = document.getElementById('gdrive-btn');
   if (gapiReady && gisReady) {
-    document.getElementById('gdrive-btn').disabled = false;
+    btn.disabled = false;
+    btn.title = 'Cliquez pour vous connecter a Google Drive';
+  } else {
+    btn.disabled = true;
+    btn.title = 'Chargement en cours...';
   }
 }
 
 window.gapiLoaded = gapiLoaded;
 window.gisLoaded  = gisLoaded;
-
-// Trigger loading after scripts
-window.addEventListener('load', () => {
-  if (typeof gapi !== 'undefined') gapiLoaded();
-  if (typeof google !== 'undefined' && google.accounts) gisLoaded();
-});
 
 // ── AUTH ──────────────────────────────────────────────────────────
 function toggleAuth() {
