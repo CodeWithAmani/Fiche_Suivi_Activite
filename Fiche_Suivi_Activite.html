@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche de Suivi d'Activité</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy: #0f1e3c;
+    --blue: #1a3a6e;
+    --mid: #2558a8;
+    --accent: #f0a500;
+    --teal: #0ea5a0;
+    --success: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f0f4fb;
+    --card: #ffffff;
+    --text: #1a2540;
+    --muted: #6b7a99;
+    --border: #dde5f5;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(21,40,90,0.10);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    color: #fff;
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 70px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 40px; height: 40px; background: var(--accent);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .logo h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo p { font-size: 11px; color: #a0b4d6; margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .date-badge {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 12px; color: #c8d8f0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .save-btn {
+    background: var(--accent); color: var(--navy);
+    border: none; padding: 8px 18px; border-radius: 9px;
+    font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px;
+    cursor: pointer; transition: all .2s;
+  }
+  .save-btn:hover { background: #ffc13d; transform: translateY(-1px); }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--card);
+    border-bottom: 2px solid var(--border);
+    display: flex; gap: 4px; padding: 0 28px;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px; border: none; background: none;
+    font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: all .2s; display: flex; align-items: center; gap: 7px;
+  }
+  .nav-tab:hover { color: var(--mid); }
+  .nav-tab.active { color: var(--mid); border-bottom-color: var(--mid); font-weight: 600; }
+
+  /* ── MAIN ── */
+  main { flex: 1; padding: 28px 32px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px; margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 22px 20px; box-shadow: var(--shadow);
+    border-left: 4px solid var(--mid);
+    display: flex; flex-direction: column; gap: 6px;
+    transition: transform .2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); }
+  .kpi-card.green  { border-left-color: var(--success); }
+  .kpi-card.amber  { border-left-color: var(--warn); }
+  .kpi-card.red    { border-left-color: var(--danger); }
+  .kpi-card.teal   { border-left-color: var(--teal); }
+  .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+  .kpi-value { font-size: 36px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--muted); }
+
+  /* ── SECTION HEADER ── */
+  .section-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-hdr h2 { font-size: 16px; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .add-btn {
+    background: var(--mid); color: #fff;
+    border: none; padding: 9px 18px; border-radius: 9px;
+    font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: all .2s;
+  }
+  .add-btn:hover { background: var(--navy); transform: translateY(-1px); }
+
+  /* ── TABLE ── */
+  .table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .table-wrap th {
+    background: var(--navy); color: #fff; padding: 12px 16px;
+    text-align: left; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+  }
+  .table-wrap td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .table-wrap tr:last-child td { border-bottom: none; }
+  .table-wrap tr:nth-child(even) td { background: #f8fafd; }
+  .table-wrap tr:hover td { background: #eef3fb; }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-blue   { background: #dbeafe; color: #1e40af; }
+  .badge-green  { background: #dcfce7; color: #15803d; }
+  .badge-amber  { background: #fef3c7; color: #b45309; }
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+  .badge-grey   { background: #f1f5f9; color: #475569; }
+  .badge-teal   { background: #ccfbf1; color: #0f766e; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,20,50,.5); z-index: 200;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    width: 560px; max-width: 95vw; max-height: 90vh;
+    overflow-y: auto; padding: 32px;
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 24px; color: var(--navy); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px;
+    font-family: 'Sora', sans-serif; font-size: 13px; color: var(--text);
+    background: #f8fafd; transition: border-color .2s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--mid); background: #fff; }
+  .form-group textarea { resize: vertical; min-height: 72px; }
+  .modal-footer { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+  .btn-cancel { background: var(--bg); border: none; padding: 10px 20px; border-radius: 9px; font-family: 'Sora',sans-serif; font-weight: 500; font-size: 13px; cursor: pointer; color: var(--muted); }
+  .btn-save { background: var(--mid); color: #fff; border: none; padding: 10px 24px; border-radius: 9px; font-family: 'Sora',sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; transition: background .2s; }
+  .btn-save:hover { background: var(--navy); }
+
+  /* ── ACTION ICONS ── */
+  .action-btn { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: background .2s; font-size: 15px; }
+  .action-btn:hover { background: var(--bg); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar { flex: 1; height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--mid), var(--teal)); border-radius: 99px; transition: width .4s; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: #fff; padding: 12px 24px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .3s;
+    z-index: 999; box-shadow: 0 8px 30px rgba(0,0,0,.2);
+  }
+  #toast.show { opacity: 1; }
+
+  /* ── SEARCH BAR ── */
+  .search-bar {
+    padding: 9px 14px 9px 38px; border: 1.5px solid var(--border);
+    border-radius: 9px; font-family: 'Sora',sans-serif; font-size: 13px;
+    background: #fff; outline: none; transition: border-color .2s; min-width: 200px;
+  }
+  .search-wrap { position: relative; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+  .search-bar:focus { border-color: var(--mid); }
+
+  @media (max-width: 700px) {
+    main { padding: 16px; }
+    header { padding: 0 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏢</div>
+    <div>
+      <h1 id="company-name">B2IX GROUP</h1>
+      <p>Fiche de Suivi d'Activité</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="date-badge" id="date-display"></div>
+    <button class="save-btn" onclick="exportData()">💾 Exporter</button>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-tab active" onclick="switchTab('dashboard',this)">📊 Tableau de Bord</button>
+  <button class="nav-tab" onclick="switchTab('visitors',this)">👥 Visiteurs</button>
+  <button class="nav-tab" onclick="switchTab('projects',this)">📁 Projets</button>
+  <button class="nav-tab" onclick="switchTab('followup',this)">⏰ Follow-Up</button>
+  <button class="nav-tab" onclick="switchTab('agenda',this)">📅 Rendez-Vous</button>
+  <button class="nav-tab" onclick="switchTab('settings',this)">⚙️ Paramètres</button>
+</nav>
+
+<main>
+
+<!-- ── DASHBOARD ── -->
+<div class="panel active" id="panel-dashboard">
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:4px">
+    <div>
+      <div class="section-hdr"><h2>⏰ Relances urgentes</h2></div>
+      <div class="table-wrap" id="dash-followup"></div>
+    </div>
+    <div>
+      <div class="section-hdr"><h2>📅 Prochains RDV</h2></div>
+      <div class="table-wrap" id="dash-rdv"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px">
+    <div class="section-hdr"><h2>📁 Projets en cours</h2></div>
+    <div class="table-wrap" id="dash-projects"></div>
+  </div>
+</div>
+
+<!-- ── VISITEURS ── -->
+<div class="panel" id="panel-visitors">
+  <div class="section-hdr">
+    <h2>👥 Registre des Visiteurs & Contacts</h2>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-bar" type="text" id="search-visitors" placeholder="Rechercher..." oninput="renderVisitors()">
+      </div>
+      <button class="add-btn" onclick="openModal('visitor')">+ Ajouter un visiteur</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Date</th><th>Heure</th><th>Nom & Prénom</th>
+        <th>Organisation</th><th>Téléphone</th><th>Objet</th><th>Statut</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="visitors-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── PROJETS ── -->
+<div class="panel" id="panel-projects">
+  <div class="section-hdr">
+    <h2>📁 Suivi des Projets</h2>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-bar" type="text" id="search-projects" placeholder="Rechercher..." oninput="renderProjects()">
+      </div>
+      <button class="add-btn" onclick="openModal('project')">+ Nouveau projet</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Code</th><th>Nom du Projet</th><th>Client</th>
+        <th>Statut</th><th>Début</th><th>Fin prévue</th><th>Responsable</th>
+        <th>Avancement</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="projects-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── FOLLOW-UP ── -->
+<div class="panel" id="panel-followup">
+  <div class="section-hdr">
+    <h2>⏰ Suivi des Relances (Follow-Up)</h2>
+    <button class="add-btn" onclick="openModal('followup')">+ Nouvelle relance</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Date</th><th>Contact</th><th>Projet lié</th>
+        <th>Statut</th><th>Type</th><th>Responsable</th><th>Date Limite</th>
+        <th>Résultat</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="followup-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── AGENDA ── -->
+<div class="panel" id="panel-agenda">
+  <div class="section-hdr">
+    <h2>📅 Agenda — Rendez-Vous</h2>
+    <button class="add-btn" onclick="openModal('rdv')">+ Nouveau RDV</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Date RDV</th><th>Heure</th><th>Interlocuteur</th>
+        <th>Organisation</th><th>Lieu/Mode</th><th>Objet</th><th>Responsable</th>
+        <th>Statut</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="agenda-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── SETTINGS ── -->
+<div class="panel" id="panel-settings">
+  <div class="section-hdr"><h2>⚙️ Paramètres de l'entreprise</h2></div>
+  <div style="background:var(--card);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);max-width:500px">
+    <div class="form-grid">
+      <div class="form-group full"><label>Nom de l'entreprise</label><input id="set-company" type="text" placeholder="B2IX GROUP"></div>
+      <div class="form-group"><label>Responsable principal</label><input id="set-manager" type="text" placeholder="Nom du responsable"></div>
+      <div class="form-group"><label>Secrétaire</label><input id="set-secretary" type="text" placeholder="Nom de la secrétaire"></div>
+      <div class="form-group"><label>Email principal</label><input id="set-email" type="email" placeholder="contact@entreprise.com"></div>
+      <div class="form-group"><label>Téléphone</label><input id="set-phone" type="tel" placeholder="+XXX XX XXX XXX"></div>
+      <div class="form-group full"><label>Adresse</label><textarea id="set-address" placeholder="Adresse complète..."></textarea></div>
+    </div>
+    <div style="margin-top:20px"><button class="btn-save" onclick="saveSettings()">💾 Sauvegarder les paramètres</button></div>
+  </div>
+</div>
+
+</main>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Visitor Modal -->
+<div class="modal-overlay" id="modal-visitor">
+  <div class="modal">
+    <h3>👥 Ajouter un Visiteur / Contact</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Date de visite</label><input id="v-date" type="date"></div>
+      <div class="form-group"><label>Heure</label><input id="v-heure" type="time"></div>
+      <div class="form-group"><label>Nom & Prénom *</label><input id="v-nom" type="text" placeholder="Jean Dupont"></div>
+      <div class="form-group"><label>Organisation</label><input id="v-org" type="text" placeholder="Entreprise ABC"></div>
+      <div class="form-group"><label>Téléphone</label><input id="v-tel" type="tel" placeholder="+XXX XX XX XX XX"></div>
+      <div class="form-group"><label>Email</label><input id="v-email" type="email" placeholder="email@exemple.com"></div>
+      <div class="form-group"><label>Statut</label>
+        <select id="v-statut">
+          <option>Prospect</option><option>Client</option><option>Partenaire</option>
+          <option>Fournisseur</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Objet de la visite</label><input id="v-objet" type="text" placeholder="Réunion commerciale..."></div>
+      <div class="form-group full"><label>Remarques</label><textarea id="v-notes" placeholder="Notes complémentaires..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModals()">Annuler</button>
+      <button class="btn-save" onclick="saveVisitor()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-overlay" id="modal-project">
+  <div class="modal">
+    <h3>📁 Nouveau Projet</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Code projet</label><input id="p-code" type="text" placeholder="PRJ-001"></div>
+      <div class="form-group"><label>Statut</label>
+        <select id="p-statut">
+          <option>En cours</option><option>En attente</option><option>Terminé</option>
+          <option>Suspendu</option><option>Annulé</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Nom du projet *</label><input id="p-nom" type="text" placeholder="Nom du projet"></div>
+      <div class="form-group"><label>Client / Partenaire</label><input id="p-client" type="text" placeholder="Nom du client"></div>
+      <div class="form-group"><label>Responsable</label><input id="p-resp" type="text" placeholder="Responsable projet"></div>
+      <div class="form-group"><label>Date de début</label><input id="p-debut" type="date"></div>
+      <div class="form-group"><label>Date de fin prévue</label><input id="p-fin" type="date"></div>
+      <div class="form-group"><label>Budget</label><input id="p-budget" type="number" placeholder="Budget en FCFA"></div>
+      <div class="form-group"><label>Avancement (0-100%)</label><input id="p-avancement" type="number" min="0" max="100" placeholder="0"></div>
+      <div class="form-group full"><label>Notes</label><textarea id="p-notes" placeholder="Description du projet..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModals()">Annuler</button>
+      <button class="btn-save" onclick="saveProject()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Follow-Up Modal -->
+<div class="modal-overlay" id="modal-followup">
+  <div class="modal">
+    <h3>⏰ Nouvelle Relance (Follow-Up)</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Date de relance</label><input id="f-date" type="date"></div>
+      <div class="form-group"><label>Date limite</label><input id="f-limite" type="date"></div>
+      <div class="form-group"><label>Contact / Entreprise *</label><input id="f-contact" type="text" placeholder="Nom du contact"></div>
+      <div class="form-group"><label>Projet lié</label><input id="f-projet" type="text" placeholder="Projet concerné"></div>
+      <div class="form-group"><label>Statut</label>
+        <select id="f-statut"><option>En attente</option><option>Fait</option><option>Urgent</option><option>Annulé</option></select>
+      </div>
+      <div class="form-group"><label>Type de relance</label>
+        <select id="f-type"><option>Appel</option><option>Email</option><option>Réunion</option><option>WhatsApp</option><option>Visite</option></select>
+      </div>
+      <div class="form-group"><label>Responsable</label><input id="f-resp" type="text" placeholder="Responsable de la relance"></div>
+      <div class="form-group"><label>Résultat</label><input id="f-resultat" type="text" placeholder="Résultat obtenu..."></div>
+      <div class="form-group full"><label>Notes</label><textarea id="f-notes" placeholder="Détails..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModals()">Annuler</button>
+      <button class="btn-save" onclick="saveFollowup()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- RDV Modal -->
+<div class="modal-overlay" id="modal-rdv">
+  <div class="modal">
+    <h3>📅 Nouveau Rendez-Vous</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Date du RDV *</label><input id="r-date" type="date"></div>
+      <div class="form-group"><label>Heure</label><input id="r-heure" type="time"></div>
+      <div class="form-group"><label>Interlocuteur *</label><input id="r-interlo" type="text" placeholder="Nom de la personne"></div>
+      <div class="form-group"><label>Organisation</label><input id="r-org" type="text" placeholder="Entreprise / Structure"></div>
+      <div class="form-group"><label>Lieu / Mode</label>
+        <select id="r-lieu"><option>Présentiel bureau</option><option>Présentiel externe</option><option>Teams/Zoom</option><option>Téléphone</option></select>
+      </div>
+      <div class="form-group"><label>Responsable</label><input id="r-resp" type="text" placeholder="Responsable de l'entreprise"></div>
+      <div class="form-group"><label>Statut</label>
+        <select id="r-statut"><option>En attente</option><option>Confirmé</option><option>Réalisé</option><option>Annulé</option><option>Reporté</option></select>
+      </div>
+      <div class="form-group full"><label>Objet du RDV</label><input id="r-objet" type="text" placeholder="Sujet de la réunion..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModals()">Annuler</button>
+      <button class="btn-save" onclick="saveRdv()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+let data = {
+  visitors: [], projects: [], followups: [], rdvs: [],
+  settings: { company: 'B2IX GROUP', manager: '', secretary: '', email: '', phone: '', address: '' }
+};
+
+function loadData() {
+  const saved = localStorage.getItem('fsa_data');
+  if (saved) data = JSON.parse(saved);
+}
+function saveData() { localStorage.setItem('fsa_data', JSON.stringify(data)); }
+function uid() { return Date.now() + Math.random().toString(36).slice(2); }
+
+// ── INIT ──────────────────────────────────────────────────────────
+loadData();
+document.getElementById('date-display').textContent = new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+// Prefill today date in modals
+['v-date','f-date','r-date'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.value = new Date().toISOString().split('T')[0];
+});
+
+// ── NAVIGATION ────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'visitors') renderVisitors();
+  if (tab === 'projects') renderProjects();
+  if (tab === 'followup') renderFollowup();
+  if (tab === 'agenda') renderAgenda();
+  if (tab === 'settings') loadSettings();
+}
+
+// ── BADGES ────────────────────────────────────────────────────────
+function statusBadge(s) {
+  const map = {
+    'En cours':'blue','Client':'green','Prospect':'amber','En attente':'amber',
+    'Terminé':'green','Fait':'green','Urgent':'red','Annulé':'grey','Suspendu':'grey',
+    'Confirmé':'teal','Réalisé':'green','Reporté':'amber','Partenaire':'teal',
+    'Fournisseur':'grey','Autre':'grey'
+  };
+  const cls = map[s] || 'grey';
+  return `<span class="badge badge-${cls}">${s}</span>`;
+}
+
+function fmtDate(d) { if (!d) return '—'; return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR'); }
+function fmtNum(n) { return n ? parseInt(n).toLocaleString('fr-FR') : '—'; }
+
+// ── DASHBOARD ─────────────────────────────────────────────────────
+function renderDashboard() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const thisMonth = today.getMonth();
+  const thisYear = today.getFullYear();
+
+  const visitorsThisMonth = data.visitors.filter(v => {
+    const d = new Date(v.date); return d.getMonth()===thisMonth && d.getFullYear()===thisYear;
+  }).length;
+  const activeProjects = data.projects.filter(p => p.statut === 'En cours').length;
+  const pendingFollowups = data.followups.filter(f => f.statut === 'En attente' || f.statut === 'Urgent').length;
+  const nextWeek = new Date(today); nextWeek.setDate(today.getDate()+7);
+  const rdvSoon = data.rdvs.filter(r => { const d=new Date(r.date); return d>=today && d<=nextWeek; }).length;
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi-card blue"><div class="kpi-label">Visiteurs ce mois</div><div class="kpi-value">${visitorsThisMonth}</div><div class="kpi-sub">enregistrés</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Projets actifs</div><div class="kpi-value">${activeProjects}</div><div class="kpi-sub">en cours</div></div>
+    <div class="kpi-card amber"><div class="kpi-label">Follow-ups en attente</div><div class="kpi-value">${pendingFollowups}</div><div class="kpi-sub">à traiter</div></div>
+    <div class="kpi-card teal"><div class="kpi-label">RDV cette semaine</div><div class="kpi-value">${rdvSoon}</div><div class="kpi-sub">prévus</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total visiteurs</div><div class="kpi-value">${data.visitors.length}</div><div class="kpi-sub">depuis le début</div></div>
+  `;
+
+  // Urgent followups
+  const urgent = data.followups.filter(f => f.statut==='Urgent' || f.statut==='En attente').slice(0,5);
+  document.getElementById('dash-followup').innerHTML = urgent.length
+    ? `<table><thead><tr><th>Contact</th><th>Type</th><th>Statut</th></tr></thead><tbody>${urgent.map(f=>`<tr><td><strong>${f.contact}</strong></td><td>${f.type}</td><td>${statusBadge(f.statut)}</td></tr>`).join('')}</tbody></table>`
+    : `<div class="empty-state"><div class="empty-icon">✅</div><p>Aucune relance en attente</p></div>`;
+
+  // Upcoming RDVs
+  const upcoming = data.rdvs.filter(r=>new Date(r.date)>=today).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,5);
+  document.getElementById('dash-rdv').innerHTML = upcoming.length
+    ? `<table><thead><tr><th>Date</th><th>Interlocuteur</th><th>Statut</th></tr></thead><tbody>${upcoming.map(r=>`<tr><td>${fmtDate(r.date)}</td><td><strong>${r.interlocuteur}</strong></td><td>${statusBadge(r.statut)}</td></tr>`).join('')}</tbody></table>`
+    : `<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun RDV à venir</p></div>`;
+
+  // Active projects
+  const active = data.projects.filter(p=>p.statut==='En cours').slice(0,5);
+  document.getElementById('dash-projects').innerHTML = active.length
+    ? `<table><thead><tr><th>Nom du projet</th><th>Client</th><th>Responsable</th><th>Avancement</th></tr></thead><tbody>${active.map(p=>`<tr><td><strong>${p.nom}</strong></td><td>${p.client||'—'}</td><td>${p.responsable||'—'}</td><td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${p.avancement||0}%"></div></div><span style="font-size:12px;font-weight:600;color:var(--mid)">${p.avancement||0}%</span></div></td></tr>`).join('')}</tbody></table>`
+    : `<div class="empty-state"><div class="empty-icon">📁</div><p>Aucun projet en cours</p></div>`;
+}
+
+// ── VISITORS ─────────────────────────────────────────────────────
+function renderVisitors() {
+  const q = (document.getElementById('search-visitors')?.value || '').toLowerCase();
+  const list = data.visitors.filter(v => !q || v.nom?.toLowerCase().includes(q) || v.organisation?.toLowerCase().includes(q));
+  const tbody = document.getElementById('visitors-body');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">👥</div><p>Aucun visiteur enregistré</p></div></td></tr>`; return; }
+  tbody.innerHTML = list.map((v,i)=>`<tr>
+    <td><span style="font-family:JetBrains Mono,monospace;font-size:12px;color:var(--muted)">${i+1}</span></td>
+    <td>${fmtDate(v.date)}</td><td>${v.heure||'—'}</td>
+    <td><strong>${v.nom}</strong></td><td>${v.organisation||'—'}</td>
+    <td style="font-family:monospace">${v.telephone||'—'}</td>
+    <td>${v.objet||'—'}</td><td>${statusBadge(v.statut)}</td>
+    <td><button class="action-btn" onclick="deleteItem('visitors','${v.id}')" title="Supprimer">🗑️</button></td>
+  </tr>`).join('');
+}
+
+function saveVisitor() {
+  const nom = document.getElementById('v-nom').value.trim();
+  if (!nom) { toast('⚠️ Le nom est obligatoire'); return; }
+  data.visitors.unshift({ id:uid(), date:document.getElementById('v-date').value, heure:document.getElementById('v-heure').value, nom, organisation:document.getElementById('v-org').value, telephone:document.getElementById('v-tel').value, email:document.getElementById('v-email').value, statut:document.getElementById('v-statut').value, objet:document.getElementById('v-objet').value, notes:document.getElementById('v-notes').value });
+  saveData(); closeModals(); renderVisitors(); toast('✅ Visiteur enregistré !');
+}
+
+// ── PROJECTS ─────────────────────────────────────────────────────
+function renderProjects() {
+  const q = (document.getElementById('search-projects')?.value || '').toLowerCase();
+  const list = data.projects.filter(p => !q || p.nom?.toLowerCase().includes(q) || p.client?.toLowerCase().includes(q));
+  const tbody = document.getElementById('projects-body');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📁</div><p>Aucun projet enregistré</p></div></td></tr>`; return; }
+  tbody.innerHTML = list.map((p,i)=>`<tr>
+    <td><span style="font-family:monospace;font-size:12px;color:var(--muted)">${i+1}</span></td>
+    <td><span class="badge badge-grey">${p.code||'—'}</span></td>
+    <td><strong>${p.nom}</strong></td><td>${p.client||'—'}</td>
+    <td>${statusBadge(p.statut)}</td>
+    <td>${fmtDate(p.debut)}</td><td>${fmtDate(p.fin)}</td>
+    <td>${p.responsable||'—'}</td>
+    <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${p.avancement||0}%"></div></div><span style="font-size:11px;font-weight:600;color:var(--mid)">${p.avancement||0}%</span></div></td>
+    <td><button class="action-btn" onclick="deleteItem('projects','${p.id}')" title="Supprimer">🗑️</button></td>
+  </tr>`).join('');
+}
+
+function saveProject() {
+  const nom = document.getElementById('p-nom').value.trim();
+  if (!nom) { toast('⚠️ Le nom du projet est obligatoire'); return; }
+  data.projects.unshift({ id:uid(), code:document.getElementById('p-code').value, nom, statut:document.getElementById('p-statut').value, client:document.getElementById('p-client').value, debut:document.getElementById('p-debut').value, fin:document.getElementById('p-fin').value, responsable:document.getElementById('p-resp').value, budget:document.getElementById('p-budget').value, avancement:parseInt(document.getElementById('p-avancement').value)||0, notes:document.getElementById('p-notes').value });
+  saveData(); closeModals(); renderProjects(); toast('✅ Projet enregistré !');
+}
+
+// ── FOLLOW-UP ────────────────────────────────────────────────────
+function renderFollowup() {
+  const list = data.followups;
+  const tbody = document.getElementById('followup-body');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⏰</div><p>Aucune relance enregistrée</p></div></td></tr>`; return; }
+  tbody.innerHTML = list.map((f,i)=>`<tr>
+    <td><span style="font-family:monospace;font-size:12px;color:var(--muted)">${i+1}</span></td>
+    <td>${fmtDate(f.date)}</td><td><strong>${f.contact}</strong></td>
+    <td>${f.projet||'—'}</td><td>${statusBadge(f.statut)}</td>
+    <td>${f.type||'—'}</td><td>${f.responsable||'—'}</td>
+    <td>${fmtDate(f.limite)}</td><td>${f.resultat||'—'}</td>
+    <td><button class="action-btn" onclick="deleteItem('followups','${f.id}')" title="Supprimer">🗑️</button></td>
+  </tr>`).join('');
+}
+
+function saveFollowup() {
+  const contact = document.getElementById('f-contact').value.trim();
+  if (!contact) { toast('⚠️ Le contact est obligatoire'); return; }
+  data.followups.unshift({ id:uid(), date:document.getElementById('f-date').value, contact, projet:document.getElementById('f-projet').value, statut:document.getElementById('f-statut').value, type:document.getElementById('f-type').value, responsable:document.getElementById('f-resp').value, limite:document.getElementById('f-limite').value, resultat:document.getElementById('f-resultat').value, notes:document.getElementById('f-notes').value });
+  saveData(); closeModals(); renderFollowup(); toast('✅ Relance enregistrée !');
+}
+
+// ── AGENDA ───────────────────────────────────────────────────────
+function renderAgenda() {
+  const list = [...data.rdvs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tbody = document.getElementById('agenda-body');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous enregistré</p></div></td></tr>`; return; }
+  tbody.innerHTML = list.map((r,i)=>`<tr>
+    <td><span style="font-family:monospace;font-size:12px;color:var(--muted)">${i+1}</span></td>
+    <td>${fmtDate(r.date)}</td><td>${r.heure||'—'}</td>
+    <td><strong>${r.interlocuteur}</strong></td><td>${r.organisation||'—'}</td>
+    <td>${r.lieu||'—'}</td><td>${r.objet||'—'}</td>
+    <td>${r.responsable||'—'}</td><td>${statusBadge(r.statut)}</td>
+    <td><button class="action-btn" onclick="deleteItem('rdvs','${r.id}')" title="Supprimer">🗑️</button></td>
+  </tr>`).join('');
+}
+
+function saveRdv() {
+  const interlocuteur = document.getElementById('r-interlo').value.trim();
+  if (!interlocuteur) { toast('⚠️ L\'interlocuteur est obligatoire'); return; }
+  data.rdvs.unshift({ id:uid(), date:document.getElementById('r-date').value, heure:document.getElementById('r-heure').value, interlocuteur, organisation:document.getElementById('r-org').value, lieu:document.getElementById('r-lieu').value, objet:document.getElementById('r-objet').value, responsable:document.getElementById('r-resp').value, statut:document.getElementById('r-statut').value });
+  saveData(); closeModals(); renderAgenda(); toast('✅ RDV enregistré !');
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────
+function loadSettings() {
+  const s = data.settings;
+  document.getElementById('set-company').value = s.company||'';
+  document.getElementById('set-manager').value = s.manager||'';
+  document.getElementById('set-secretary').value = s.secretary||'';
+  document.getElementById('set-email').value = s.email||'';
+  document.getElementById('set-phone').value = s.phone||'';
+  document.getElementById('set-address').value = s.address||'';
+}
+
+function saveSettings() {
+  data.settings = {
+    company: document.getElementById('set-company').value,
+    manager: document.getElementById('set-manager').value,
+    secretary: document.getElementById('set-secretary').value,
+    email: document.getElementById('set-email').value,
+    phone: document.getElementById('set-phone').value,
+    address: document.getElementById('set-address').value,
+  };
+  document.getElementById('company-name').textContent = data.settings.company || 'B2IX GROUP';
+  saveData(); toast('✅ Paramètres sauvegardés !');
+}
+
+// ── UTILS ────────────────────────────────────────────────────────
+function deleteItem(collection, id) {
+  if (!confirm('Supprimer cet élément ?')) return;
+  data[collection] = data[collection].filter(x => x.id !== id);
+  saveData();
+  if (collection==='visitors') renderVisitors();
+  if (collection==='projects') renderProjects();
+  if (collection==='followups') renderFollowup();
+  if (collection==='rdvs') renderAgenda();
+  toast('🗑️ Élément supprimé');
+}
+
+function openModal(type) {
+  document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));
+  document.getElementById('modal-'+type).classList.add('open');
+}
+
+function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open')); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target===overlay) closeModals(); });
+});
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='CPD_Backup_'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+  toast('💾 Données exportées !');
+}
+
+// ── INITIAL RENDER ───────────────────────────────────────────────
+document.getElementById('company-name').textContent = data.settings.company || 'B2IX GROUP';
+renderDashboard();
+</script>
+</body>
+</html>
